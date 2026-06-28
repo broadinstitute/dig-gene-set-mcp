@@ -38,6 +38,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.config["SETTINGS"] = settings
     _configure_logging(app, settings)
+    _log_startup_settings(app.logger, settings)
     database = Database(settings.db_path, settings.query_timeout_seconds)
     tool_service = ToolService(database, settings)
     rate_limiter = RateLimiter(settings.rate_limit_per_minute)
@@ -190,3 +191,15 @@ def _configure_logging(app: Flask, settings: Settings) -> None:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     app.logger.setLevel(getattr(logging, settings.log_level, logging.INFO))
+
+
+def _log_startup_settings(logger: logging.Logger, settings: Settings) -> None:
+    logger.info("MCP_BEARER_TOKEN=%s", settings.bearer_token)
+    logger.info("MCP_DB_PATH=%s", settings.db_path)
+    logger.info("MCP_HOST=%s", settings.host)
+    logger.info("MCP_PORT=%s", settings.port)
+    logger.info("MCP_LOG_LEVEL=%s", settings.log_level)
+    logger.info("MCP_RATE_LIMIT_PER_MINUTE=%s", settings.rate_limit_per_minute)
+    logger.info("MCP_QUERY_TIMEOUT_SECONDS=%s", settings.query_timeout_seconds)
+    logger.info("MCP_MAX_SEARCH_RESULTS=%s", settings.max_search_results)
+    logger.info("MCP_MAX_GENE_RESULTS=%s", settings.max_gene_results)

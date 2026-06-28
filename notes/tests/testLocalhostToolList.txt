@@ -1,0 +1,8 @@
+
+curl -N \
+-H "Authorization: Bearer change-me" \
+-H "Content-Type: application/json" \
+-H "Accept: text/event-stream" \
+-d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
+http://127.0.0.1:8000/mcp?stream=1
+
