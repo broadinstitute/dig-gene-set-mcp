@@ -1,0 +1,40 @@
+
+
+
+
+
+-- 20260527 - build flask based mcp server 
+in the python-flask-server directory, build an python flask mcp server 
+using as a refererence the sql schema at notes/database/database-schema.sql
+and the test sqlite database at python-flask-server/data/genseco_vOriginal.sqlite
+
+the mcp server should have the following tools:
+MCP tools:
+1. search_gene_sets
+search the gene_set table using the standard_name
+example: search_gene_sets(query, organism?, library?, limit?)
+2. get_gene_set
+retrieve the gene set fromm the gene_set table either by gene_set_id or standard_name
+example: get_gene_set(gene_set_id, include_genes=true, max_genes=200)
+3. get_provenance
+using the gene_set and provenance tables, return the provenance.provenance_graph and provenance_geneset_metadata given a gene_set_id or standard_name
+example: get_provenance(gene_set_id)
+4. find_gene_sets_by_gene
+search gene sets by overlap with gene list provided using the database tables gene_set, gene_set_gene_symbol and gene_symbol
+5. get_graph_neighborhood
+a controlled graph lookup tool that starts from one known node — usually a gene set, gene, dataset, tissue, contrast, or provenance record — and returns the nearby nodes and edges around it.
+gene set → provenance → source dataset → tissue → contrast → pipeline
+gene set → genes
+gene → gene sets
+trait/disease → gene sets, if present
+
+the mcp server should have the following properties:
+Streamable HTTP MCP server
+read-only tools
+bearer token auth
+rate limits
+short result payloads
+logging
+moderately long query timeout; enough to avoid crashing the server. we expect 10 users average
+
+
