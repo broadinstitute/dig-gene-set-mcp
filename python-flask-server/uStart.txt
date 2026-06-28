@@ -1,0 +1,19 @@
+
+export PORT=8080
+
+
+export TRAN_LOG_FILE=/home/ubuntu/Applications/Logs/mcpGeneSetExtractor.log
+export TRAN_ACCESS_LOG_FILE=/home/ubuntu/Applications/Logs/mcpGeneSetExtractorAccess.log
+
+export TRAN_LOG_FILE=/tmp/geneSetExtractor.log
+export TRAN_ACCESS_LOG_FILE=/tmp/geneSetExtractorAccess.log
+
+# gunicorn -w 4 --bind 0.0.0.0:$PORT python-flask-server/app.py --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+# gunicorn -w 4 --bind 0.0.0.0:$PORT app:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+gunicorn -w 1 --bind 0.0.0.0:$PORT app:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+
+# python3 -m openapi_server
+
+
+
+
