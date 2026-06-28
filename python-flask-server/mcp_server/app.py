@@ -67,6 +67,79 @@ def create_app() -> Flask:
             }
         )
 
+    @app.get("/tools/search_gene_sets")
+    def search_gene_sets_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "search_gene_sets",
+            {
+                "query": request.args.get("query", ""),
+                "organism": request.args.get("organism"),
+                "library": request.args.get("library"),
+                "limit": _parse_optional_int_arg("limit"),
+            },
+        )
+        return jsonify(response), status_code
+
+    @app.get("/tools/get_gene_set")
+    def get_gene_set_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "get_gene_set",
+            {
+                "gene_set_id": _parse_optional_int_arg("gene_set_id"),
+                "standard_name": request.args.get("standard_name"),
+                "include_genes": _parse_bool_arg("include_genes", True),
+                "max_genes": _parse_optional_int_arg("max_genes"),
+            },
+        )
+        return jsonify(response), status_code
+
+    @app.get("/tools/get_provenance")
+    def get_provenance_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "get_provenance",
+            {
+                "gene_set_id": _parse_optional_int_arg("gene_set_id"),
+                "standard_name": request.args.get("standard_name"),
+            },
+        )
+        return jsonify(response), status_code
+
+    @app.get("/tools/find_gene_sets_by_gene")
+    def find_gene_sets_by_gene_get() -> Response:
+        genes = request.args.getlist("gene")
+        if not genes:
+            csv_genes = request.args.get("genes", "")
+            genes = [gene.strip() for gene in csv_genes.split(",") if gene.strip()]
+        response, status_code = _tool_http_response(
+            tool_service,
+            "find_gene_sets_by_gene",
+            {
+                "genes": genes,
+                "organism": request.args.get("organism"),
+                "library": request.args.get("library"),
+                "limit": _parse_optional_int_arg("limit"),
+            },
+        )
+        return jsonify(response), status_code
+
+    @app.get("/tools/get_graph_neighborhood")
+    def get_graph_neighborhood_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "get_graph_neighborhood",
+            {
+                "node_type": request.args.get("node_type", ""),
+                "node_id": request.args.get("node_id", ""),
+                "max_nodes": _parse_optional_int_arg("max_nodes"),
+                "max_edges": _parse_optional_int_arg("max_edges"),
+                "include_genes": _parse_bool_arg("include_genes", False),
+            },
+        )
+        return jsonify(response), status_code
+
     @app.route("/mcp", methods=["GET", "POST"])
     def mcp_endpoint() -> Response:
         if request.method == "GET":
@@ -178,6 +251,17 @@ def _sse_response(payload: dict[str, Any], status_code: int = 200) -> Response:
     return Response(generate(), status=status_code, mimetype="text/event-stream")
 
 
+def _tool_http_response(tool_service: ToolService, tool_name: str, arguments: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    filtered_arguments = {key: value for key, value in arguments.items() if value is not None}
+    try:
+        result = call_tool(tool_service, tool_name, filtered_arguments)
+        return {"tool": tool_name, "ok": True, "result": result}, 200
+    except ToolError as exc:
+        return {"tool": tool_name, "ok": False, "error": str(exc)}, 400
+    except ValueError as exc:
+        return {"tool": tool_name, "ok": False, "error": str(exc)}, 400
+
+
 def _client_identity() -> str:
     forwarded_for = request.headers.get("X-Forwarded-For", "")
     if forwarded_for:
@@ -203,3 +287,22 @@ def _log_startup_settings(logger: logging.Logger, settings: Settings) -> None:
     logger.info("MCP_QUERY_TIMEOUT_SECONDS=%s", settings.query_timeout_seconds)
     logger.info("MCP_MAX_SEARCH_RESULTS=%s", settings.max_search_results)
     logger.info("MCP_MAX_GENE_RESULTS=%s", settings.max_gene_results)
+
+
+def _parse_optional_int_arg(name: str) -> int | None:
+    raw_value = request.args.get(name)
+    if raw_value is None or raw_value == "":
+        return None
+    return int(raw_value)
+
+
+def _parse_bool_arg(name: str, default: bool) -> bool:
+    raw_value = request.args.get(name)
+    if raw_value is None or raw_value == "":
+        return default
+    normalized = raw_value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"Invalid boolean for {name}: {raw_value}")
