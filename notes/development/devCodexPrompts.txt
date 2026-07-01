@@ -2,6 +2,61 @@
 
 
 
+20260701 - prompts for building mcp bioindex pass through
+- parameter limit in combined score; model
+
+
+20260630 - build bioindex apis prompts
+Focus
+- 14,pigean-gene-set-phenotype,PigeanGeneSetPhenotype,bioindex-dev/catalog_v2/pigean/gene_set/phenotype/,"phenotype,gene_set_size"
+- 15,pigean-gene-set,PigeanGeneSet,bioindex-dev/catalog_v2/pigean/gene_set/gene_set/,"gene_set,gene_set_size"
+- 30,pigean-gene,PigeanGene,bioindex-dev/catalog_v2/pigean/gene/gene/,"gene,gene_set_size"
+
+29,pigean-phenotypes,PigeanPhenotypes,bioindex-dev/catalog_v2/pigean/phenotypes/,dummy
+
+Maybe 
+18,pigean-joined-gene,PigeanJoinedGene,bioindex-dev/catalog_v2/pigean/gene_gene_set/gene/,"phenotype,gene,gene_set_size"
+49,pigean-factor,PigeanFactor,bioindex-dev/catalog_v2/pigean/factor/,"phenotype,gene_set_size"
+50,pigean-gene-factor,PigeanGeneFactor,bioindex-dev/catalog_v2/pigean/gene_factor/,"phenotype,gene_set_size,factor"
+51,pigean-gene-set-factor,PigeanGeneSetFactor,bioindex-dev/catalog_v2/pigean/gene_set_factor/,"phenotype,gene_set_size,factor"
+
+NTH
+16,pigean-gene-phenotype,PigeanGenePhenotype,bioindex-dev/catalog_v2/pigean/gene/phenotype/,"phenotype,gene_set_size"
+19,pigean-joined-gene-set,PigeanJoinedGeneSet,bioindex-dev/catalog_v2/pigean/gene_gene_set/gene_set/,"phenotype,gene_set,gene_set_size"
+23,pigean-overall-gene,PigeanOverallGene,bioindex-dev/catalog_v2/pigean/gene_gene_set/overall_gene/,"gene,gene_set_size"
+24,pigean-gene-set-source,PigeanGeneSetSource,bioindex-dev/catalog_v2/pigean/gene_set/source/,"source_index,gene_set_size"
+47,pigean-gene-set-genes,PigeanGeneSetGenes,bioindex-dev/catalog_v2/pigean/gene_set_genes/gene_set/,"gene_set,gene_set_size"
+48,pigean-gene-gene-sets,PigeanGeneGeneSets,bioindex-dev/catalog_v2/pigean/gene_set_genes/gene/,"gene,gene_set_size"
+
+
+
+https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-factor?q=T2D,cfde,Factor1 This is a factor example. There are 14 APIs.
+https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-factor?q=T2D,cfde
+https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-factor?q=T2D,cfde,Factor1
+
+Those are factor APIs. There are 6 main pigean endpoints. And then four others. All have that cfde model parameter
+
+
+14,pigean-gene-set-phenotype,PigeanGeneSetPhenotype,bioindex-dev/catalog_v2/pigean/gene_set/phenotype/,"phenotype,gene_set_size"
+15,pigean-gene-set,PigeanGeneSet,bioindex-dev/catalog_v2/pigean/gene_set/gene_set/,"gene_set,gene_set_size"
+16,pigean-gene-phenotype,PigeanGenePhenotype,bioindex-dev/catalog_v2/pigean/gene/phenotype/,"phenotype,gene_set_size"
+18,pigean-joined-gene,PigeanJoinedGene,bioindex-dev/catalog_v2/pigean/gene_gene_set/gene/,"phenotype,gene,gene_set_size"
+19,pigean-joined-gene-set,PigeanJoinedGeneSet,bioindex-dev/catalog_v2/pigean/gene_gene_set/gene_set/,"phenotype,gene_set,gene_set_size"
+23,pigean-overall-gene,PigeanOverallGene,bioindex-dev/catalog_v2/pigean/gene_gene_set/overall_gene/,"gene,gene_set_size"
+24,pigean-gene-set-source,PigeanGeneSetSource,bioindex-dev/catalog_v2/pigean/gene_set/source/,"source_index,gene_set_size"
+29,pigean-phenotypes,PigeanPhenotypes,bioindex-dev/catalog_v2/pigean/phenotypes/,dummy
+30,pigean-gene,PigeanGene,bioindex-dev/catalog_v2/pigean/gene/gene/,"gene,gene_set_size"
+47,pigean-gene-set-genes,PigeanGeneSetGenes,bioindex-dev/catalog_v2/pigean/gene_set_genes/gene_set/,"gene_set,gene_set_size"
+48,pigean-gene-gene-sets,PigeanGeneGeneSets,bioindex-dev/catalog_v2/pigean/gene_set_genes/gene/,"gene,gene_set_size"
+49,pigean-factor,PigeanFactor,bioindex-dev/catalog_v2/pigean/factor/,"phenotype,gene_set_size"
+50,pigean-gene-factor,PigeanGeneFactor,bioindex-dev/catalog_v2/pigean/gene_factor/,"phenotype,gene_set_size,factor"
+51,pigean-gene-set-factor,PigeanGeneSetFactor,bioindex-dev/catalog_v2/pigean/gene_set_factor/,"phenotype,gene_set_size,factor"
+That's a mess but gene_set_size is the model
+
+
+
+
+
 
 -- 20260527 - build flask based mcp server 
 in the python-flask-server directory, build an python flask mcp server 
