@@ -17,8 +17,8 @@ PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
 PIGEAN_GENE_PATH = "/api/bio/query/pigean-gene"
 PIGEAN_PHENOTYPES_PATH = "/api/bio/query/pigean-phenotypes"
 PIGEAN_MODEL_DEFAULT = "cfde-inc"
-PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.1
-PIGEAN_COMBINED_MINIMUM = 5
+PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.05
+PIGEAN_COMBINED_MINIMUM = 2
 
 
 class ToolError(Exception):
