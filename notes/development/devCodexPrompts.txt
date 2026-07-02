@@ -3,13 +3,45 @@
 
 20260701 - create bioindex toom, trait by geneSetExtractor
 
+create a similar mcp tool that wraps the call https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene?q=<gene>,<model>
+that returns phenotype associations for a gene
+add any outgoing web service calls in the python-flask-server/mcp_server/web_utils.py 
+reuse the url and model constants 
+gene will be the text gene identifier passed into the mcp tool
+add a code constant named combined that will default to 5 and will be used to filter out all results below that value
+sample output is:
+{
+        "data": [
+        {
+            "phenotype": "Orphanet_90970",
+            "gene_set_size": "cfde",
+            "combined": 12.5,
+            "factor": "Factor2",
+            "gene": "PPARG",
+            "huge_score": 5.89,
+            "label": "Progeria and partial lipodystrophy",
+            "log_bf": 5.89,
+            "n": 4111,
+            "prior": 6.63,
+            "trait_group": "rare_v2",
+            "max_trait_prior": 6.63,
+            "max_trait_combined": 12.5,
+            "max_trait_log_bf": 5.89
+        }
+        ]
+}
+the mcp tool should return phenotype, combined, huge_score, label
+handle any errors that come up so the mcp call doesn't fail 
+make an accompanying test GET call to test the logic from curl
+
+
 
 create an mcp tool that wraps a GET call to 
 https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set?q=<gene_set>,<model>
-add any outgoing web service calls in the python-flask-server/mcp/web_utils.py 
+add any outgoing web service calls in the python-flask-server/mcp_server/web_utils.py 
 make the https://cfde-dev.hugeampkpnbi.org address a constant set in the code
-gene_set will be the gene id passed into the mcp tool
-model will be a code constant that will default tp cfde
+gene_set will be the gene set id passed into the mcp tool
+model will be a code constant that will default to cfde
 add a code constant named beta_uncorrected that will default to 0.1 and will be used to filter out all results below that value
 sample output is:
 {    "data": [
@@ -31,9 +63,10 @@ sample output is:
     ]
 }
 the mcp tool should return phenotype, beta, beta_uncorrected, rs_score
+handle any errors that come up so the mcp call doesn't fail 
+make an accompanying test GET call to test the logic from curl
 
-see the output for a sample call at 
-https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set?q=WP_LEPTIN_INSULIN_SIGNALING_OVERLAP,cfde
+
 
 
 
@@ -82,8 +115,8 @@ handle any errors that come up so the mcp call doesn't fail
 20260630 - build bioindex apis prompts
 Focus
 - 14,pigean-gene-set-phenotype,PigeanGeneSetPhenotype,bioindex-dev/catalog_v2/pigean/gene_set/phenotype/,"phenotype,gene_set_size"
-- 15,pigean-gene-set,PigeanGeneSet,bioindex-dev/catalog_v2/pigean/gene_set/gene_set/,"gene_set,gene_set_size"
-- 30,pigean-gene,PigeanGene,bioindex-dev/catalog_v2/pigean/gene/gene/,"gene,gene_set_size"
++ 15,pigean-gene-set,PigeanGeneSet,bioindex-dev/catalog_v2/pigean/gene_set/gene_set/,"gene_set,gene_set_size"
++ 30,pigean-gene,PigeanGene,bioindex-dev/catalog_v2/pigean/gene/gene/,"gene,gene_set_size"
 
 29,pigean-phenotypes,PigeanPhenotypes,bioindex-dev/catalog_v2/pigean/phenotypes/,dummy
 

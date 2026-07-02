@@ -14,8 +14,10 @@ REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT = 15
 REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
 PIGEAN_BASE_URL = "https://cfde-dev.hugeampkpnbi.org"
 PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
+PIGEAN_GENE_PATH = "/api/bio/query/pigean-gene"
 PIGEAN_MODEL_DEFAULT = "cfde"
 PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.1
+PIGEAN_COMBINED_MINIMUM = 5
 
 
 class ToolError(Exception):
@@ -186,6 +188,50 @@ class ToolService:
             "gene_set_id": normalized_gene_set_id,
             "model": PIGEAN_MODEL_DEFAULT,
             "beta_uncorrected_minimum": PIGEAN_BETA_UNCORRECTED_MINIMUM,
+            "count": len(filtered_items),
+            "items": filtered_items,
+        }
+
+    def get_pigean_gene(
+        self,
+        gene: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_gene = (gene or "").strip()
+        if not normalized_gene:
+            raise ToolError("gene is required")
+        query_value = f"{normalized_gene},{PIGEAN_MODEL_DEFAULT}"
+        url = f"{PIGEAN_BASE_URL}{PIGEAN_GENE_PATH}?q={quote(query_value, safe=',')}"
+        try:
+            response = get_json(url=url, timeout_seconds=self._settings.query_timeout_seconds)
+        except WebRequestError as exc:
+            return {
+                "gene": normalized_gene,
+                "model": PIGEAN_MODEL_DEFAULT,
+                "combined_minimum": PIGEAN_COMBINED_MINIMUM,
+                "count": 0,
+                "items": [],
+                "warning": str(exc),
+            }
+
+        data = response.get("data", []) if isinstance(response, dict) else []
+        filtered_items = []
+        for item in data:
+            combined = item.get("combined")
+            if not isinstance(combined, (int, float)) or combined < PIGEAN_COMBINED_MINIMUM:
+                continue
+            filtered_items.append(
+                {
+                    "phenotype": item.get("phenotype"),
+                    "combined": combined,
+                    "huge_score": item.get("huge_score"),
+                    "label": item.get("label"),
+                }
+            )
+
+        return {
+            "gene": normalized_gene,
+            "model": PIGEAN_MODEL_DEFAULT,
+            "combined_minimum": PIGEAN_COMBINED_MINIMUM,
             "count": len(filtered_items),
             "items": filtered_items,
         }
@@ -639,6 +685,18 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "get_pigean_gene",
+        "description": "Fetch Pigean phenotype associations for a gene and return phenotype, combined, huge_score, and label.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "gene": {"type": "string"},
+            },
+            "required": ["gene"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "get_provenance",
         "description": "Return compacted provenance_graph and geneset_metadata for a gene set.",
         "inputSchema": {
@@ -690,6 +748,7 @@ def call_tool(service: ToolService, name: str, arguments: dict[str, Any]) -> dic
         "search_gene_sets_semantic": service.search_gene_sets_semantic,
         "get_gene_set": service.get_gene_set,
         "get_pigean_gene_set": service.get_pigean_gene_set,
+        "get_pigean_gene": service.get_pigean_gene,
         "get_provenance": service.get_provenance,
         "find_gene_sets_by_gene": service.find_gene_sets_by_gene,
         "get_graph_neighborhood": service.get_graph_neighborhood,
