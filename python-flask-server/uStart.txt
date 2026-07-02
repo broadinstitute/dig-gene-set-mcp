@@ -13,7 +13,6 @@ export MCP_DB_PATH=./data/genseco_vOriginal.sqlite
 export MCP_HOST=127.0.0.1
 export MCP_PORT=8000
 export MCP_LOG_LEVEL=INFO
-export MCP_REMOTE_SEARCH_BASE_URL=http://ec2-3-210-5-42.compute-1.amazonaws.com
 export MCP_RATE_LIMIT_PER_MINUTE=60
 export MCP_QUERY_TIMEOUT_SECONDS=20
 export MCP_MAX_SEARCH_RESULTS=25
@@ -24,6 +23,5 @@ export MCP_MAX_GENE_RESULTS=200
 gunicorn -w 1 --bind 0.0.0.0:$PORT app:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
 
 # python3 -m openapi_server
-
 
 

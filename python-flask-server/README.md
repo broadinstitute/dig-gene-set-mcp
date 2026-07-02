@@ -25,7 +25,6 @@ Important environment values:
 - `MCP_HOST`
 - `MCP_PORT`
 - `MCP_LOG_LEVEL`
-- `MCP_REMOTE_SEARCH_BASE_URL`
 - `MCP_RATE_LIMIT_PER_MINUTE`
 - `MCP_QUERY_TIMEOUT_SECONDS`
 - `MCP_MAX_SEARCH_RESULTS`
@@ -38,7 +37,6 @@ Examples:
 - `GET /tools/list`
 - `GET /tools/get_phenotype_name?phenotype=T2D`
 - `GET /tools/search_gene_sets?query=whole_blood&limit=3`
-- `GET /tools/search_gene_sets_semantic?query=insulin%20secretion%20in%20beta%20cells`
 - `GET /tools/get_gene_set?gene_set_id=1&include_genes=true&max_genes=10`
 - `GET /tools/get_pigean_gene_set?gene_set_id=WP_LEPTIN_INSULIN_SIGNALING_OVERLAP`
 - `GET /tools/get_pigean_gene?gene=PPARG`

@@ -12,7 +12,6 @@ class Settings:
     port: int
     log_level: str
     bearer_token: str
-    remote_search_base_url: str
     db_path: Path
     rate_limit_per_minute: int
     query_timeout_seconds: int
@@ -29,10 +28,6 @@ def load_settings(base_dir: Path) -> Settings:
         port=int(os.getenv("MCP_PORT", "8000")),
         log_level=os.getenv("MCP_LOG_LEVEL", "INFO").upper(),
         bearer_token=token,
-        remote_search_base_url=os.getenv(
-            "MCP_REMOTE_SEARCH_BASE_URL",
-            "http://ec2-3-210-5-42.compute-1.amazonaws.com",
-        ).rstrip("/"),
         db_path=db_path,
         rate_limit_per_minute=max(1, int(os.getenv("MCP_RATE_LIMIT_PER_MINUTE", "60"))),
         query_timeout_seconds=max(1, int(os.getenv("MCP_QUERY_TIMEOUT_SECONDS", "20"))),

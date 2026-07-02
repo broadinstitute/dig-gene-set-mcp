@@ -1,6 +1,11 @@
 
 
 
+20260702 - temp buuld with no semanttic search
+remove the search_gene_sets_semantic tool from the mcp server and GET web service calls
+
+
+
 20260702 - add phenotype labels
 add a call at app startup to cache a phenotype to phenotype_name map
 get the data from a GET call at https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-phenotypes?q=1

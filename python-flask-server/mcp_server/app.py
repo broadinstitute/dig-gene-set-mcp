@@ -102,18 +102,6 @@ def create_app() -> Flask:
         )
         return jsonify(response), status_code
 
-    @app.get("/tools/search_gene_sets_semantic")
-    def search_gene_sets_semantic_get() -> Response:
-        response, status_code = _tool_http_response(
-            tool_service,
-            "search_gene_sets_semantic",
-            {
-                "query": request.args.get("query", ""),
-                "limit": _parse_optional_int_arg("limit"),
-            },
-        )
-        return jsonify(response), status_code
-
     @app.get("/tools/get_gene_set")
     def get_gene_set_get() -> Response:
         response, status_code = _tool_http_response(
@@ -349,7 +337,6 @@ def _log_startup_settings(logger: logging.Logger, settings: Settings) -> None:
     logger.info("MCP_HOST=%s", settings.host)
     logger.info("MCP_PORT=%s", settings.port)
     logger.info("MCP_LOG_LEVEL=%s", settings.log_level)
-    logger.info("MCP_REMOTE_SEARCH_BASE_URL=%s", settings.remote_search_base_url)
     logger.info("MCP_RATE_LIMIT_PER_MINUTE=%s", settings.rate_limit_per_minute)
     logger.info("MCP_QUERY_TIMEOUT_SECONDS=%s", settings.query_timeout_seconds)
     logger.info("MCP_MAX_SEARCH_RESULTS=%s", settings.max_search_results)
