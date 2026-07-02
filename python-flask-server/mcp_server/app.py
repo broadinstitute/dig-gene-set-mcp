@@ -81,6 +81,18 @@ def create_app() -> Flask:
         )
         return jsonify(response), status_code
 
+    @app.get("/tools/search_gene_sets_semantic")
+    def search_gene_sets_semantic_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "search_gene_sets_semantic",
+            {
+                "query": request.args.get("query", ""),
+                "limit": _parse_optional_int_arg("limit"),
+            },
+        )
+        return jsonify(response), status_code
+
     @app.get("/tools/get_gene_set")
     def get_gene_set_get() -> Response:
         response, status_code = _tool_http_response(
@@ -170,7 +182,17 @@ def create_app() -> Flask:
 def _handle_mcp_request(body: Any, tool_service: ToolService, logger: logging.Logger) -> tuple[dict[str, Any], int]:
     request_id = body.get("id") if isinstance(body, dict) else None
     request_uuid = str(uuid.uuid4())
-    logger.info("mcp_request_received request_uuid=%s method=%s", request_uuid, body.get("method") if isinstance(body, dict) else None)
+    tool_name = None
+    if isinstance(body, dict) and body.get("method") == "tools/call":
+        params = body.get("params", {})
+        if isinstance(params, dict):
+            tool_name = params.get("name")
+    logger.info(
+        "mcp_request_received request_uuid=%s method=%s tool_name=%s",
+        request_uuid,
+        body.get("method") if isinstance(body, dict) else None,
+        tool_name,
+    )
 
     if not isinstance(body, dict):
         return _jsonrpc_error(request_id, -32600, "Request must be a JSON object"), 400
@@ -253,6 +275,7 @@ def _sse_response(payload: dict[str, Any], status_code: int = 200) -> Response:
 
 def _tool_http_response(tool_service: ToolService, tool_name: str, arguments: dict[str, Any]) -> tuple[dict[str, Any], int]:
     filtered_arguments = {key: value for key, value in arguments.items() if value is not None}
+    logging.getLogger(__name__).info("tool_http_request tool_name=%s arguments=%s", tool_name, filtered_arguments)
     try:
         result = call_tool(tool_service, tool_name, filtered_arguments)
         return {"tool": tool_name, "ok": True, "result": result}, 200
@@ -283,6 +306,7 @@ def _log_startup_settings(logger: logging.Logger, settings: Settings) -> None:
     logger.info("MCP_HOST=%s", settings.host)
     logger.info("MCP_PORT=%s", settings.port)
     logger.info("MCP_LOG_LEVEL=%s", settings.log_level)
+    logger.info("MCP_REMOTE_SEARCH_BASE_URL=%s", settings.remote_search_base_url)
     logger.info("MCP_RATE_LIMIT_PER_MINUTE=%s", settings.rate_limit_per_minute)
     logger.info("MCP_QUERY_TIMEOUT_SECONDS=%s", settings.query_timeout_seconds)
     logger.info("MCP_MAX_SEARCH_RESULTS=%s", settings.max_search_results)

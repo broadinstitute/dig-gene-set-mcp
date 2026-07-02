@@ -5,8 +5,13 @@ import sqlite3
 from dataclasses import dataclass
 from typing import Any
 
+from mcp.web_utils import WebRequestError, post_json
+
 from .config import Settings
 from .database import Database, parse_json_blob, row_to_dict
+
+REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT = 15
+REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
 
 
 class ToolError(Exception):
@@ -69,6 +74,40 @@ class ToolService:
             "library": library,
             "count": len(items),
             "items": items,
+        }
+
+    def search_gene_sets_semantic(
+        self,
+        query: str,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        cleaned_query = query.strip()
+        if not cleaned_query:
+            raise ToolError("query is required")
+
+        outbound_limit = REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT if limit is None else min(max(1, limit), 100)
+        url = f"{self._settings.remote_search_base_url}{REMOTE_GENE_SET_SEARCH_PATH}"
+        try:
+            response = post_json(
+                url=url,
+                payload={"query": cleaned_query, "limit": outbound_limit},
+                timeout_seconds=self._settings.query_timeout_seconds,
+            )
+        except WebRequestError as exc:
+            raise ToolError(str(exc)) from exc
+
+        items = response.get("items", []) if isinstance(response, dict) else []
+        return {
+            "query": response.get("query", cleaned_query) if isinstance(response, dict) else cleaned_query,
+            "count": len(items),
+            "items": [
+                {
+                    "label": item.get("label"),
+                    "description": item.get("description"),
+                    "score": item.get("score"),
+                }
+                for item in items
+            ],
         }
 
     def get_gene_set(
@@ -513,6 +552,19 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "search_gene_sets_semantic",
+        "description": "Proxy semantic gene set search to the configured remote service and return label, description, and score.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "get_gene_set",
         "description": "Retrieve a gene set by gene_set_id or standard_name, optionally including genes.",
         "inputSchema": {
@@ -575,6 +627,7 @@ TOOL_DEFINITIONS = [
 def call_tool(service: ToolService, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     handlers = {
         "search_gene_sets": service.search_gene_sets,
+        "search_gene_sets_semantic": service.search_gene_sets_semantic,
         "get_gene_set": service.get_gene_set,
         "get_provenance": service.get_provenance,
         "find_gene_sets_by_gene": service.find_gene_sets_by_gene,

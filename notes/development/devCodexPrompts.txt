@@ -6,6 +6,45 @@
 - parameter limit in combined score; model
 
 
+create an mcp tool that wraps a POST call to http://ec2-3-210-5-42.compute-1.amazonaws.com/interactive/gene-set/search
+with sample payload:
+{
+    "query": "insulin secretion in beta cells",
+    "limit": 15
+}
+sample output:
+{
+    "query": "insulin secretion in beta cells",
+    "items": [
+        {
+            "node_id": "gene_set:WP_GROWTH_FACTORS_AND_HORMONES_IN_BETA_CELL_PROLIFERATION",
+            "node_type": "gene_set",
+            "node_key": "WP_GROWTH_FACTORS_AND_HORMONES_IN_BETA_CELL_PROLIFERATION",
+            "label": "WP_GROWTH_FACTORS_AND_HORMONES_IN_BETA_CELL_PROLIFERATION",
+            "subtitle": "WikiPathways",
+            "description": "Growth factors and hormones in beta cell proliferation",
+            "score": 0.924886
+        },
+        {
+            "node_id": "gene_set:REACTOME_GLUCAGON_LIKE_PEPTIDE_1_GLP1_REGULATES_INSULIN_SECRETION",
+            "node_type": "gene_set",
+            "node_key": "REACTOME_GLUCAGON_LIKE_PEPTIDE_1_GLP1_REGULATES_INSULIN_SECRETION",
+            "label": "REACTOME_GLUCAGON_LIKE_PEPTIDE_1_GLP1_REGULATES_INSULIN_SECRETION",
+            "subtitle": "Reactome",
+            "description": "Glucagon-like Peptide-1 (GLP1) regulates insulin secretion",
+            "score": 0.9062
+        }
+    ]
+}
+return the label, description and score 
+make the server address as an environment property that defaults to http://ec2-3-210-5-42.compute-1.amazonaws.com if none set
+make the payload limit a script constant that defaults to 15
+add any outgoing web service calls in the python-flask-server/mcp/web_utils.py 
+add logging of the incoming mcp request and outgoing web service call
+update the docs for server startup
+handle any errors that come up so the mcp call doesn't fail 
+
+
 20260630 - build bioindex apis prompts
 Focus
 - 14,pigean-gene-set-phenotype,PigeanGeneSetPhenotype,bioindex-dev/catalog_v2/pigean/gene_set/phenotype/,"phenotype,gene_set_size"
