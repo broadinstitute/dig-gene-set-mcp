@@ -15,7 +15,7 @@ REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
 PIGEAN_BASE_URL = "https://cfde-dev.hugeampkpnbi.org"
 PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
 PIGEAN_GENE_PATH = "/api/bio/query/pigean-gene"
-PIGEAN_MODEL_DEFAULT = "cfde"
+PIGEAN_MODEL_DEFAULT = "cfde-inc"
 PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.1
 PIGEAN_COMBINED_MINIMUM = 5
 
