@@ -227,7 +227,6 @@ class ToolService:
                     "phenotype": item.get("phenotype"),
                     "phenotype_name": self._phenotype_name(item.get("phenotype")),
                     "combined": combined,
-                    "huge_score": item.get("huge_score"),
                     "label": item.get("label"),
                 }
             )
@@ -695,7 +694,7 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "get_pigean_gene",
-        "description": "Fetch Pigean phenotype associations for a gene and return phenotype, combined, huge_score, and label.",
+        "description": "Fetch Pigean phenotype associations for a gene and return phenotype, phenotype_name, combined, and label.",
         "inputSchema": {
             "type": "object",
             "properties": {
