@@ -1,6 +1,18 @@
 
 
 
+20260702 - add phenotype labels
+add a call at app startup to cache a phenotype to phenotype_name map
+get the data from a GET call at https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-phenotypes?q=1
+add any outgoing web service calls in the python-flask-server/mcp_server/web_utils.py 
+reuse the url constant
+if that doesn't work or there is an error, pull the data from the python-flask-server/data/phenotypes.json file
+use the phenotype map to add phenotype_name to the pigean-gene and pigean-gene-set web service and mcp calls
+handle any errors that come up so the mcp call doesn't fail 
+make an accompanying test GET call to test the logic from curl
+
+
+
 20260701 - create bioindex toom, trait by geneSetExtractor
 
 create a similar mcp tool that wraps the call https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene?q=<gene>,<model>

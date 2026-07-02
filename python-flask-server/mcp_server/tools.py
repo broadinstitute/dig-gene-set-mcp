@@ -15,6 +15,7 @@ REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
 PIGEAN_BASE_URL = "https://cfde-dev.hugeampkpnbi.org"
 PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
 PIGEAN_GENE_PATH = "/api/bio/query/pigean-gene"
+PIGEAN_PHENOTYPES_PATH = "/api/bio/query/pigean-phenotypes"
 PIGEAN_MODEL_DEFAULT = "cfde-inc"
 PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.1
 PIGEAN_COMBINED_MINIMUM = 5
@@ -34,9 +35,10 @@ class ResolvedGeneSet:
 
 
 class ToolService:
-    def __init__(self, database: Database, settings: Settings) -> None:
+    def __init__(self, database: Database, settings: Settings, phenotype_name_map: dict[str, str] | None = None) -> None:
         self._database = database
         self._settings = settings
+        self._phenotype_name_map = phenotype_name_map or {}
 
     def search_gene_sets(
         self,
@@ -178,6 +180,7 @@ class ToolService:
             filtered_items.append(
                 {
                     "phenotype": item.get("phenotype"),
+                    "phenotype_name": self._phenotype_name(item.get("phenotype")),
                     "beta": item.get("beta"),
                     "beta_uncorrected": beta_uncorrected,
                     "rs_score": item.get("rs_score"),
@@ -222,6 +225,7 @@ class ToolService:
             filtered_items.append(
                 {
                     "phenotype": item.get("phenotype"),
+                    "phenotype_name": self._phenotype_name(item.get("phenotype")),
                     "combined": combined,
                     "huge_score": item.get("huge_score"),
                     "label": item.get("label"),
@@ -627,6 +631,11 @@ class ToolService:
         if requested_limit is None:
             return self._settings.max_search_results
         return min(max(1, requested_limit), self._settings.max_search_results)
+
+    def _phenotype_name(self, phenotype: Any) -> str | None:
+        if not isinstance(phenotype, str):
+            return None
+        return self._phenotype_name_map.get(phenotype)
 
 
 TOOL_DEFINITIONS = [

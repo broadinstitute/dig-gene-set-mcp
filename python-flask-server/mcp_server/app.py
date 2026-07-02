@@ -12,7 +12,8 @@ from flask import Flask, Response, jsonify, request
 
 from .config import Settings, load_settings
 from .database import Database
-from .tools import TOOL_DEFINITIONS, ToolError, ToolService, call_tool
+from .tools import PIGEAN_BASE_URL, PIGEAN_PHENOTYPES_PATH, TOOL_DEFINITIONS, ToolError, ToolService, call_tool
+from .web_utils import WebRequestError, get_json, load_json_file
 
 
 class RateLimiter:
@@ -39,8 +40,10 @@ def create_app() -> Flask:
     app.config["SETTINGS"] = settings
     _configure_logging(app, settings)
     _log_startup_settings(app.logger, settings)
+    phenotype_name_map = _load_phenotype_name_map(base_dir, settings, app.logger)
+    app.config["PHENOTYPE_NAME_MAP"] = phenotype_name_map
     database = Database(settings.db_path, settings.query_timeout_seconds)
-    tool_service = ToolService(database, settings)
+    tool_service = ToolService(database, settings, phenotype_name_map=phenotype_name_map)
     rate_limiter = RateLimiter(settings.rate_limit_per_minute)
 
     @app.before_request
@@ -70,6 +73,20 @@ def create_app() -> Flask:
     @app.get("/tools/list")
     def tools_list_get() -> Response:
         return jsonify({"ok": True, "tools": TOOL_DEFINITIONS})
+
+    @app.get("/tools/get_phenotype_name")
+    def get_phenotype_name_get() -> Response:
+        phenotype = (request.args.get("phenotype") or "").strip()
+        if not phenotype:
+            return jsonify({"ok": False, "error": "phenotype is required"}), 400
+        phenotype_name_map = app.config.get("PHENOTYPE_NAME_MAP", {})
+        return jsonify(
+            {
+                "ok": True,
+                "phenotype": phenotype,
+                "phenotype_name": phenotype_name_map.get(phenotype),
+            }
+        )
 
     @app.get("/tools/search_gene_sets")
     def search_gene_sets_get() -> Response:
@@ -337,6 +354,44 @@ def _log_startup_settings(logger: logging.Logger, settings: Settings) -> None:
     logger.info("MCP_QUERY_TIMEOUT_SECONDS=%s", settings.query_timeout_seconds)
     logger.info("MCP_MAX_SEARCH_RESULTS=%s", settings.max_search_results)
     logger.info("MCP_MAX_GENE_RESULTS=%s", settings.max_gene_results)
+
+
+def _load_phenotype_name_map(base_dir: Path, settings: Settings, logger: logging.Logger) -> dict[str, str]:
+    url = f"{PIGEAN_BASE_URL}{PIGEAN_PHENOTYPES_PATH}?q=1"
+    fallback_path = base_dir / "data" / "phenotypes.json"
+    payload: Any
+    source = "remote"
+    try:
+        payload = get_json(url=url, timeout_seconds=settings.query_timeout_seconds)
+    except WebRequestError as exc:
+        logger.warning("phenotype_cache_remote_failed error=%s fallback_path=%s", exc, fallback_path)
+        try:
+            payload = load_json_file(fallback_path)
+            source = "file"
+        except Exception:
+            logger.exception("phenotype_cache_file_failed path=%s", fallback_path)
+            return {}
+
+    phenotype_name_map = _extract_phenotype_name_map(payload)
+    logger.info("phenotype_cache_loaded source=%s count=%s", source, len(phenotype_name_map))
+    return phenotype_name_map
+
+
+def _extract_phenotype_name_map(payload: Any) -> dict[str, str]:
+    if not isinstance(payload, dict):
+        return {}
+    data = payload.get("data", [])
+    if not isinstance(data, list):
+        return {}
+    phenotype_name_map: dict[str, str] = {}
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        phenotype = item.get("phenotype")
+        phenotype_name = item.get("phenotype_name")
+        if isinstance(phenotype, str) and phenotype and isinstance(phenotype_name, str) and phenotype_name:
+            phenotype_name_map[phenotype] = phenotype_name
+    return phenotype_name_map
 
 
 def _parse_optional_int_arg(name: str) -> int | None:

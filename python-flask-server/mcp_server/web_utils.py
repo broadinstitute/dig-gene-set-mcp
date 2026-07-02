@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 from typing import Any
 from urllib import error, request
 
@@ -90,3 +91,9 @@ def get_json(url: str, timeout_seconds: int) -> dict[str, Any]:
     except json.JSONDecodeError as exc:
         LOGGER.warning("outgoing_web_error method=GET url=%s reason=invalid_json", url)
         raise WebRequestError("Remote service returned invalid JSON") from exc
+
+
+def load_json_file(path: Path) -> Any:
+    LOGGER.info("local_json_load path=%s", path)
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
