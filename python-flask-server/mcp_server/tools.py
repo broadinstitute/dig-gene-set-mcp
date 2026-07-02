@@ -98,7 +98,7 @@ class ToolService:
         try:
             response = post_json(
                 url=url,
-                payload={"query": cleaned_query, "limit": outbound_limit},
+                payload={"query": cleaned_query, "limit": outbound_limit, "model": PIGEAN_MODEL_DEFAULT},
                 timeout_seconds=self._settings.query_timeout_seconds,
             )
         except WebRequestError as exc:
