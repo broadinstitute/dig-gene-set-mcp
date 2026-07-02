@@ -4,14 +4,19 @@ import json
 import sqlite3
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import quote
 
-from mcp.web_utils import WebRequestError, post_json
+from mcp.web_utils import WebRequestError, get_json, post_json
 
 from .config import Settings
 from .database import Database, parse_json_blob, row_to_dict
 
 REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT = 15
 REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
+PIGEAN_BASE_URL = "https://cfde-dev.hugeampkpnbi.org"
+PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
+PIGEAN_MODEL_DEFAULT = "cfde"
+PIGEAN_BETA_UNCORRECTED_MINIMUM = 0.1
 
 
 class ToolError(Exception):
@@ -141,6 +146,50 @@ class ToolService:
                 payload["gene_count"] = total_gene_count["count"] if total_gene_count else len(payload["genes"])
                 payload["genes_truncated"] = payload["gene_count"] > len(payload["genes"])
             return payload
+
+    def get_pigean_gene_set(
+        self,
+        gene_set_id: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_gene_set_id = (gene_set_id or "").strip()
+        if not normalized_gene_set_id:
+            raise ToolError("gene_set_id is required")
+        query_value = f"{normalized_gene_set_id},{PIGEAN_MODEL_DEFAULT}"
+        url = f"{PIGEAN_BASE_URL}{PIGEAN_GENE_SET_PATH}?q={quote(query_value, safe=',')}"
+        try:
+            response = get_json(url=url, timeout_seconds=self._settings.query_timeout_seconds)
+        except WebRequestError as exc:
+            return {
+                "gene_set_id": normalized_gene_set_id,
+                "model": PIGEAN_MODEL_DEFAULT,
+                "beta_uncorrected_minimum": PIGEAN_BETA_UNCORRECTED_MINIMUM,
+                "count": 0,
+                "items": [],
+                "warning": str(exc),
+            }
+
+        data = response.get("data", []) if isinstance(response, dict) else []
+        filtered_items = []
+        for item in data:
+            beta_uncorrected = item.get("beta_uncorrected")
+            if not isinstance(beta_uncorrected, (int, float)) or beta_uncorrected < PIGEAN_BETA_UNCORRECTED_MINIMUM:
+                continue
+            filtered_items.append(
+                {
+                    "phenotype": item.get("phenotype"),
+                    "beta": item.get("beta"),
+                    "beta_uncorrected": beta_uncorrected,
+                    "rs_score": item.get("rs_score"),
+                }
+            )
+
+        return {
+            "gene_set_id": normalized_gene_set_id,
+            "model": PIGEAN_MODEL_DEFAULT,
+            "beta_uncorrected_minimum": PIGEAN_BETA_UNCORRECTED_MINIMUM,
+            "count": len(filtered_items),
+            "items": filtered_items,
+        }
 
     def get_provenance(
         self,
@@ -579,6 +628,18 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "get_pigean_gene_set",
+        "description": "Fetch Pigean phenotype associations for a gene set id and return phenotype, beta, beta_uncorrected, and rs_score.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "gene_set_id": {"type": "string"},
+            },
+            "required": ["gene_set_id"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "get_provenance",
         "description": "Return compacted provenance_graph and geneset_metadata for a gene set.",
         "inputSchema": {
@@ -629,6 +690,7 @@ def call_tool(service: ToolService, name: str, arguments: dict[str, Any]) -> dic
         "search_gene_sets": service.search_gene_sets,
         "search_gene_sets_semantic": service.search_gene_sets_semantic,
         "get_gene_set": service.get_gene_set,
+        "get_pigean_gene_set": service.get_pigean_gene_set,
         "get_provenance": service.get_provenance,
         "find_gene_sets_by_gene": service.find_gene_sets_by_gene,
         "get_graph_neighborhood": service.get_graph_neighborhood,

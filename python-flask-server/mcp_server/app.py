@@ -107,6 +107,17 @@ def create_app() -> Flask:
         )
         return jsonify(response), status_code
 
+    @app.get("/tools/get_pigean_gene_set")
+    def get_pigean_gene_set_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "get_pigean_gene_set",
+            {
+                "gene_set_id": request.args.get("gene_set_id"),
+            },
+        )
+        return jsonify(response), status_code
+
     @app.get("/tools/get_provenance")
     def get_provenance_get() -> Response:
         response, status_code = _tool_http_response(

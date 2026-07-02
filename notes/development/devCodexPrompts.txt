@@ -1,10 +1,44 @@
 
 
 
+20260701 - create bioindex toom, trait by geneSetExtractor
+
+
+create an mcp tool that wraps a GET call to 
+https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set?q=<gene_set>,<model>
+add any outgoing web service calls in the python-flask-server/mcp/web_utils.py 
+make the https://cfde-dev.hugeampkpnbi.org address a constant set in the code
+gene_set will be the gene id passed into the mcp tool
+model will be a code constant that will default tp cfde
+add a code constant named beta_uncorrected that will default to 0.1 and will be used to filter out all results below that value
+sample output is:
+{    "data": [
+        {
+            "phenotype": "T2D",
+            "gene_set_size": "cfde",
+            "beta": -2.83e-7,
+            "beta_uncorrected": 2.72,
+            "gene_set": "WP_LEPTIN_INSULIN_SIGNALING_OVERLAP",
+            "gene_set_description": "Genes associated with wp leptin insulin signaling overlap in MSigDB.",
+            "gene_set_program": "None",
+            "n": 17,
+            "rs_score": 1.4070945826941093,
+            "source": "gene_set_list_msigdb_nohp",
+            "trait_group": "portal",
+            "max_trait_beta": 0.976,
+            "max_trait_beta_uncorrected": 2.89
+        }
+    ]
+}
+the mcp tool should return phenotype, beta, beta_uncorrected, rs_score
+
+see the output for a sample call at 
+https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set?q=WP_LEPTIN_INSULIN_SIGNALING_OVERLAP,cfde
+
+
 
 20260701 - prompts for building mcp bioindex pass through
 - parameter limit in combined score; model
-
 
 create an mcp tool that wraps a POST call to http://ec2-3-210-5-42.compute-1.amazonaws.com/interactive/gene-set/search
 with sample payload:
