@@ -682,7 +682,7 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "get_pigean_gene_set",
-        "description": "Fetch Pigean phenotype associations for a gene set id and return phenotype, beta, beta_uncorrected, and rs_score.",
+        "description": "Fetch Pigean phenotype associations for a gene set standard_name and return phenotype, beta, beta_uncorrected, and rs_score.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -694,7 +694,7 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "get_pigean_gene",
-        "description": "Fetch Pigean phenotype associations for a gene and return phenotype, phenotype_name, combined, and label.",
+        "description": "Fetch Pigean phenotype associations for a gene name and return phenotype, phenotype_name, combined, and label.",
         "inputSchema": {
             "type": "object",
             "properties": {

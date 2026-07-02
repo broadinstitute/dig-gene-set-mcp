@@ -283,7 +283,7 @@ def _handle_mcp_request(body: Any, tool_service: ToolService, logger: logging.Lo
             )
         return _jsonrpc_error(request_id, -32601, "Method not found"), 404
     except ToolError as exc:
-        logger.warning("mcp_tool_error request_uuid=%s error=%s", request_uuid, exc)
+        logger.error("mcp_tool_error request_uuid=%s error=%s", request_uuid, exc)
         return (
             {
                 "jsonrpc": "2.0",
@@ -364,7 +364,7 @@ def _load_phenotype_name_map(base_dir: Path, settings: Settings, logger: logging
     try:
         payload = get_json(url=url, timeout_seconds=settings.query_timeout_seconds)
     except WebRequestError as exc:
-        logger.warning("phenotype_cache_remote_failed error=%s fallback_path=%s", exc, fallback_path)
+        logger.error("phenotype_cache_remote_failed error=%s fallback_path=%s", exc, fallback_path)
         try:
             payload = load_json_file(fallback_path)
             source = "file"

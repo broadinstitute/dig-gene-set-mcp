@@ -40,7 +40,7 @@ def post_json(url: str, payload: dict[str, Any], timeout_seconds: int) -> dict[s
             return parsed_response
     except error.HTTPError as exc:
         response_body = exc.read().decode("utf-8", errors="replace")
-        LOGGER.warning(
+        LOGGER.error(
             "outgoing_web_error method=POST url=%s status=%s body=%s",
             url,
             exc.code,
@@ -48,10 +48,10 @@ def post_json(url: str, payload: dict[str, Any], timeout_seconds: int) -> dict[s
         )
         raise WebRequestError(f"Remote service returned HTTP {exc.code}") from exc
     except error.URLError as exc:
-        LOGGER.warning("outgoing_web_error method=POST url=%s reason=%s", url, exc.reason)
+        LOGGER.error("outgoing_web_error method=POST url=%s reason=%s", url, exc.reason)
         raise WebRequestError(f"Remote service request failed: {exc.reason}") from exc
     except json.JSONDecodeError as exc:
-        LOGGER.warning("outgoing_web_error method=POST url=%s reason=invalid_json", url)
+        LOGGER.error("outgoing_web_error method=POST url=%s reason=invalid_json", url)
         raise WebRequestError("Remote service returned invalid JSON") from exc
 
 
@@ -78,7 +78,7 @@ def get_json(url: str, timeout_seconds: int) -> dict[str, Any]:
             return parsed_response
     except error.HTTPError as exc:
         response_body = exc.read().decode("utf-8", errors="replace")
-        LOGGER.warning(
+        LOGGER.error(
             "outgoing_web_error method=GET url=%s status=%s body=%s",
             url,
             exc.code,
@@ -86,10 +86,10 @@ def get_json(url: str, timeout_seconds: int) -> dict[str, Any]:
         )
         raise WebRequestError(f"Remote service returned HTTP {exc.code}") from exc
     except error.URLError as exc:
-        LOGGER.warning("outgoing_web_error method=GET url=%s reason=%s", url, exc.reason)
+        LOGGER.error("outgoing_web_error method=GET url=%s reason=%s", url, exc.reason)
         raise WebRequestError(f"Remote service request failed: {exc.reason}") from exc
     except json.JSONDecodeError as exc:
-        LOGGER.warning("outgoing_web_error method=GET url=%s reason=invalid_json", url)
+        LOGGER.error("outgoing_web_error method=GET url=%s reason=invalid_json", url)
         raise WebRequestError("Remote service returned invalid JSON") from exc
 
 
