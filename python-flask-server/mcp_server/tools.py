@@ -6,10 +6,9 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import quote
 
-from mcp.web_utils import WebRequestError, get_json, post_json
-
 from .config import Settings
 from .database import Database, parse_json_blob, row_to_dict
+from .web_utils import WebRequestError, get_json, post_json
 
 REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT = 15
 REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
