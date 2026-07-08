@@ -1,6 +1,8 @@
 
 
 
+20260708 - jason mcp error
+
 20260702 - add phenotype labels
 add a call at app startup to cache a phenotype to phenotype_name map
 get the data from a GET call at https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-phenotypes?q=1

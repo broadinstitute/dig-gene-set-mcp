@@ -8,7 +8,7 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Any, Iterable
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, stream_with_context
 
 from .config import Settings, load_settings
 from .database import Database
@@ -198,7 +198,7 @@ def create_app() -> Flask:
     @app.route("/mcp", methods=["GET", "POST"])
     def mcp_endpoint() -> Response:
         if request.method == "GET":
-            return _sse_response(
+            return _streamable_mcp_sse_response(
                 {
                     "jsonrpc": "2.0",
                     "method": "server/ready",
@@ -214,6 +214,8 @@ def create_app() -> Flask:
             return jsonify(_jsonrpc_error(None, -32700, "Invalid JSON body")), 400
 
         response_body, status_code = _handle_mcp_request(body, tool_service, app.logger)
+        if response_body is None:
+            return Response(status=status_code)
         wants_stream = "text/event-stream" in request.headers.get("Accept", "") or request.args.get("stream") == "1"
         if wants_stream:
             return _sse_response(response_body, status_code=status_code)
@@ -257,8 +259,9 @@ def _handle_mcp_request(body: Any, tool_service: ToolService, logger: logging.Lo
                 },
                 200,
             )
-        if method == "notifications/initialized":
-            return {"jsonrpc": "2.0", "id": request_id, "result": {}}, 200
+        if isinstance(method, str) and method.startswith("notifications/"):
+            logger.info("mcp_notification_accepted request_uuid=%s method=%s", request_uuid, method)
+            return None, 202
         if method == "tools/list":
             return {"jsonrpc": "2.0", "id": request_id, "result": {"tools": TOOL_DEFINITIONS}}, 200
         if method == "tools/call":
@@ -314,6 +317,22 @@ def _sse_response(payload: dict[str, Any], status_code: int = 200) -> Response:
         yield f"data: {json.dumps(payload, separators=(',', ':'), ensure_ascii=True)}\n\n"
 
     return Response(generate(), status=status_code, mimetype="text/event-stream")
+
+
+def _streamable_mcp_sse_response(payload: dict[str, Any], status_code: int = 200) -> Response:
+    @stream_with_context
+    def generate() -> Iterable[str]:
+        yield "event: message\n"
+        yield f"data: {json.dumps(payload, separators=(',', ':'), ensure_ascii=True)}\n\n"
+        while True:
+            time.sleep(15)
+            yield ": keepalive\n\n"
+
+    response = Response(generate(), status=status_code, mimetype="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Connection"] = "keep-alive"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response
 
 
 def _tool_http_response(tool_service: ToolService, tool_name: str, arguments: dict[str, Any]) -> tuple[dict[str, Any], int]:
