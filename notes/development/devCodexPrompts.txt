@@ -1,7 +1,64 @@
 
 
 
+
+20260708 - adding gene set search by trait
+create an mcp tool that wraps the POST call to http://ec2-3-210-5-42.compute-1.amazonaws.com/interactive/gene-set/search
+with sample payload, query being a free text query parameter:
+{
+    "query": "disorder of energy metabolism in muscle mitochondria",
+    "mode": "phenotype",
+    "limit": 5,
+    "model": "cfde-inc"
+}
+that returns gene set associations for a trait
+add any outgoing web service calls in the python-flask-server/mcp_server/web_utils.py 
+reuse the url and model constants
+make the limit a constant named SEMANTIC_TRAIT_SEARCH_LIMIT_DEFAULT that defaults to 25
+sample output is:
+{
+    "query": "disorder of energy metabolism in muscle mitochondria",
+    "items": [
+        {
+            "trait": "Orphanet_309136",
+            "trait_node_id": "trait:Orphanet_309136",
+            "trait_description": "Mitochondrial disorder due to a defect in assembly or maturation of the respiratory chain complexes",
+            "gene_set": "GTEx__muscle__GTEx_aging_Muscle_20-29_70-79_up___LINCS_L1000__all_signatures__LINCS_L1000_Chem_Pert_BRD-K24565713_up",
+            "gene_set_node_id": "gene_set:GTEx__muscle__GTEx_aging_Muscle_20-29_70-79_up___LINCS_L1000__all_signatures__LINCS_L1000_Chem_Pert_BRD-K24565713_up",
+            "gene_set_description": "GTEx v8 bulk RNA-seq age-comparison up-gene set for Muscle using model HZ1: genes with higher expression in 70-79 year olds relative to 20-29 year olds, identified by notebook-style age-signature analysis, 20-29 reference-group matching by random subsampling, and legacy directional extraction.___LINCS L1000 chemical perturbation up-gene set for BRD-K24565713 using model HZ1: genes increased after chemical perturbation by BRD-K24565713, derived from built from the released chemical-perturbation mean coefficient matrix with z-score thresholding and approved-gene mapping.",
+            "program": "gtex___lincs",
+            "beta_uncorrected": 2.67,
+            "score": 0.88562
+        }
+    ]
+}
+the mcp tool should return trait, trait_description, gene_set_node_id, gene_set_description, beta_uncorrected, score
+handle any errors that come up so the mcp call doesn't fail 
+make an accompanying test GET call to test the logic from curl
+
+
 20260708 - jason mcp error
+a collaborator using a codex agent is having an error connecting to the mcp server 
+Codex 0.143.0 streamable_http startup fails for gene-set-demo after initialize:
+  "Transport channel closed, when send initialized notification"
+
+  Endpoint:
+  https://translator.broadinstitute.org/genetics_provider/mcp_geneset/mcp
+
+  Auth works and direct tools/list works with Bearer change-me.
+
+  Until the server fixes the handshake behavior, Codex will keep showing incomplete MCP startup even though manual tools/list succeeds.
+
+the server logs show 
+2026-07-08 02:56:41,109 INFO mcp_server.app mcp_request_received request_uuid=835580bd-6b23-4012-bdba-4838dc7323c6 method=notifications/initialized tool_name=None
+2026-07-08 02:56:41,492 INFO mcp_server.app mcp_request_received request_uuid=cbdf035d-5d8a-46f7-a0a9-9e149bbb2ef0 method=initialize tool_name=None
+2026-07-08 02:56:41,619 INFO mcp_server.app mcp_request_received request_uuid=b8cbc911-15e7-49f6-ad6d-972b965ed2f0 method=notifications/initialized tool_name=None
+2026-07-08 02:56:42,756 INFO mcp_server.app mcp_request_received request_uuid=76959694-8297-495c-bd8f-005892867a62 method=initialize tool_name=None
+2026-07-08 02:56:42,876 INFO mcp_server.app mcp_request_received request_uuid=f3682de4-2259-4922-a4b9-4fba96920717 method=notifications/initialized tool_name=None
+2026-07-08 02:59:01,532 INFO mcp_server.app mcp_request_received request_uuid=31e76504-aa67-454a-82bf-812ad9419185 method=initialize tool_name=None
+
+
+
 
 20260702 - add phenotype labels
 add a call at app startup to cache a phenotype to phenotype_name map

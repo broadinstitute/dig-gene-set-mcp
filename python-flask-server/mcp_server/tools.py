@@ -11,7 +11,9 @@ from .database import Database, parse_json_blob, row_to_dict
 from .web_utils import WebRequestError, get_json, post_json
 
 REMOTE_GENE_SET_SEARCH_LIMIT_DEFAULT = 15
+SEMANTIC_TRAIT_SEARCH_LIMIT_DEFAULT = 25
 REMOTE_GENE_SET_SEARCH_PATH = "/interactive/gene-set/search"
+SEMANTIC_TRAIT_SEARCH_MODE = "phenotype"
 PIGEAN_BASE_URL = "https://cfde-dev.hugeampkpnbi.org"
 PIGEAN_GENE_SET_PATH = "/api/bio/query/pigean-gene-set"
 PIGEAN_GENE_PATH = "/api/bio/query/pigean-gene"
@@ -116,6 +118,66 @@ class ToolService:
                 }
                 for item in items
             ],
+        }
+
+    def search_gene_sets_by_trait(
+        self,
+        query: str,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        cleaned_query = query.strip()
+        if not cleaned_query:
+            raise ToolError("query is required")
+
+        outbound_limit = (
+            SEMANTIC_TRAIT_SEARCH_LIMIT_DEFAULT
+            if limit is None
+            else min(max(1, limit), 100)
+        )
+        url = f"{self._settings.remote_search_base_url}{REMOTE_GENE_SET_SEARCH_PATH}"
+        try:
+            response = post_json(
+                url=url,
+                payload={
+                    "query": cleaned_query,
+                    "mode": SEMANTIC_TRAIT_SEARCH_MODE,
+                    "limit": outbound_limit,
+                    "model": PIGEAN_MODEL_DEFAULT,
+                },
+                timeout_seconds=self._settings.query_timeout_seconds,
+            )
+        except WebRequestError as exc:
+            return {
+                "query": cleaned_query,
+                "mode": SEMANTIC_TRAIT_SEARCH_MODE,
+                "model": PIGEAN_MODEL_DEFAULT,
+                "limit": outbound_limit,
+                "count": 0,
+                "items": [],
+                "warning": str(exc),
+            }
+
+        items = response.get("items", []) if isinstance(response, dict) else []
+        filtered_items = []
+        for item in items:
+            filtered_items.append(
+                {
+                    "trait": item.get("trait"),
+                    "trait_description": item.get("trait_description"),
+                    "gene_set_node_id": item.get("gene_set_node_id"),
+                    "gene_set_description": item.get("gene_set_description"),
+                    "beta_uncorrected": item.get("beta_uncorrected"),
+                    "score": item.get("score"),
+                }
+            )
+
+        return {
+            "query": response.get("query", cleaned_query) if isinstance(response, dict) else cleaned_query,
+            "mode": SEMANTIC_TRAIT_SEARCH_MODE,
+            "model": PIGEAN_MODEL_DEFAULT,
+            "limit": outbound_limit,
+            "count": len(filtered_items),
+            "items": filtered_items,
         }
 
     def get_gene_set(
@@ -667,6 +729,19 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "search_gene_sets_by_trait",
+        "description": "Proxy phenotype-mode semantic search and return trait-to-gene-set associations.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "get_gene_set",
         "description": "Retrieve a gene set by gene_set_id or standard_name, optionally including genes.",
         "inputSchema": {
@@ -754,6 +829,7 @@ def call_tool(service: ToolService, name: str, arguments: dict[str, Any]) -> dic
     handlers = {
         "search_gene_sets": service.search_gene_sets,
         "search_gene_sets_semantic": service.search_gene_sets_semantic,
+        "search_gene_sets_by_trait": service.search_gene_sets_by_trait,
         "get_gene_set": service.get_gene_set,
         "get_pigean_gene_set": service.get_pigean_gene_set,
         "get_pigean_gene": service.get_pigean_gene,

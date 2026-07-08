@@ -114,6 +114,18 @@ def create_app() -> Flask:
         )
         return jsonify(response), status_code
 
+    @app.get("/tools/search_gene_sets_by_trait")
+    def search_gene_sets_by_trait_get() -> Response:
+        response, status_code = _tool_http_response(
+            tool_service,
+            "search_gene_sets_by_trait",
+            {
+                "query": request.args.get("query", ""),
+                "limit": _parse_optional_int_arg("limit"),
+            },
+        )
+        return jsonify(response), status_code
+
     @app.get("/tools/get_gene_set")
     def get_gene_set_get() -> Response:
         response, status_code = _tool_http_response(

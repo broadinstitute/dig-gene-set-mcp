@@ -39,6 +39,7 @@ Examples:
 - `GET /tools/get_phenotype_name?phenotype=T2D`
 - `GET /tools/search_gene_sets?query=whole_blood&limit=3`
 - `GET /tools/search_gene_sets_semantic?query=insulin%20secretion%20in%20beta%20cells`
+- `GET /tools/search_gene_sets_by_trait?query=disorder%20of%20energy%20metabolism%20in%20muscle%20mitochondria`
 - `GET /tools/get_gene_set?gene_set_id=1&include_genes=true&max_genes=10`
 - `GET /tools/get_pigean_gene_set?gene_set_id=WP_LEPTIN_INSULIN_SIGNALING_OVERLAP`
 - `GET /tools/get_pigean_gene?gene=PPARG`
@@ -71,4 +72,12 @@ Curl test for the cached phenotype-name lookup:
 curl \
   -H "Authorization: Bearer change-me" \
   "http://127.0.0.1:8000/tools/get_phenotype_name?phenotype=T2D"
+```
+
+Curl test for the semantic trait-to-gene-set wrapper:
+
+```bash
+curl \
+  -H "Authorization: Bearer change-me" \
+  "http://127.0.0.1:8000/tools/search_gene_sets_by_trait?query=disorder%20of%20energy%20metabolism%20in%20muscle%20mitochondria"
 ```
