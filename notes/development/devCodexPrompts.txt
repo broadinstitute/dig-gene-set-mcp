@@ -9,7 +9,7 @@ with sample payload, query being a free text query parameter:
     "query": "disorder of energy metabolism in muscle mitochondria",
     "mode": "phenotype",
     "limit": 5,
-    "model": "cfde-inc"
+    "model": "cfde-inc-v2"
 }
 that returns gene set associations for a trait
 add any outgoing web service calls in the python-flask-server/mcp_server/web_utils.py 
